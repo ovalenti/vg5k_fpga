@@ -57,7 +57,7 @@ end
 assign data_bus = reg_read ? addressed_reg : 8'bz;
 
 wire reg_write = !latched_cs_ && !rw && (intel_mode ? 1 : ds);
-wire reg_read = !latched_cs_ && (intel_mode ? !ds : rw);
+wire reg_read = !latched_cs_ && (intel_mode ? ~ds : (rw & ds));
 
 reg [7:0] R0;
 reg [7:0] R1;

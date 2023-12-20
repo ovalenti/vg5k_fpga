@@ -131,29 +131,18 @@ int main(int argc, char** argv) {
 	top->as = 1;
 	top->ds = 1;
 	top->rw = 1;
+	top->data_bus_in_en = 0;
 	top->eval();
 
-	std::cout << "   cs_\tas\tds\trw\tdata\ttest" << std::endl;
-
 	while (!contextp->gotFinish() && step != steps.end()) {
+
 		contextp->timeInc(1);
 		top->clk_in = !top->clk_in;
+
 		bool cont = (*step)->step(top);
 		if (!cont) step++;
-		std::cout << "-> "
-			<< (int)top->cs_ << '\t'
-			<< (int)top->as << '\t'
-			<< (int)top->ds << '\t'
-			<< (int)top->rw << '\t'
-			<< (int)top->data_bus_in << std::endl;
+
 		top->eval();
-		std::cout << "<- "
-			<< (int)top->cs_ << '\t'
-			<< (int)top->as << '\t'
-			<< (int)top->ds << '\t'
-			<< (int)top->rw << '\t'
-			<< (int)top->data_bus_out << std::endl;
-		std::cout << "--" << std::endl;
 	}
 	delete top;
 	delete contextp;

@@ -1,4 +1,4 @@
-#include "Vef9345.h"
+#include "Vef9345_inout_wrapper.h"
 #include "verilated.h"
 //#include "verilated_vcd_c.h"
 #include <iostream>
@@ -6,7 +6,7 @@
 
 class Step {
 public:
-	virtual bool step(Vef9345 *chip) = 0;
+	virtual bool step(Vef9345_inout_wrapper *chip) = 0;
 	virtual ~Step() {}
 };
 
@@ -14,17 +14,17 @@ class SetAddr : public Step {
 public:
 	SetAddr(int addr) : addr(addr), state(STATE_PRE) {}
 
-	bool step(Vef9345 *chip) override {
+	bool step(Vef9345_inout_wrapper *chip) override {
 		switch (state) {
 		case STATE_PRE:
 			chip->as = 1;
 			chip->rw = 1;
 			chip->ds = 1;
-			chip->data_bus = addr;
+			chip->data_bus_in = addr;
+			chip->data_bus_in_en = 1;
 			break;
 		case STATE_WRITE:
 			chip->as = 0;
-			chip->data_bus = addr;
 			return false;
 		}
 		state = state + 1;
@@ -43,17 +43,17 @@ class WriteData : public Step {
 public:
 	WriteData(int reg_val) : reg_val(reg_val), state(STATE_PRE) {}
 
-	bool step(Vef9345 *chip) override {
+	bool step(Vef9345_inout_wrapper *chip) override {
 		switch (state) {
 		case STATE_PRE:
 			chip->as = 1;
 			chip->rw = 1;
 			chip->ds = 1;
-			chip->data_bus = reg_val;
+			chip->data_bus_in = reg_val;
+			chip->data_bus_in_en = 1;
 			break;
 		case STATE_WRITE:
 			chip->rw = 0;
-			chip->data_bus = reg_val;
 			return false;
 		}
 		state = state + 1;
@@ -72,15 +72,16 @@ class ReadData : public Step {
 public:
 	ReadData() {}
 
-	bool step(Vef9345 *chip) override {
+	bool step(Vef9345_inout_wrapper *chip) override {
 		switch (state) {
 		case STATE_PRE:
 			chip->as = 1;
 			chip->rw = 1;
 			chip->ds = 0;
+			chip->data_bus_in_en = 0;
 			break;
 		case STATE_READ:
-			std::cout << "ReadData: " << (int)chip->data_bus << std::endl;
+			std::cout << "ReadData: " << (int)chip->data_bus_out << std::endl;
 			return false;
 		}
 		state = state + 1;
@@ -98,7 +99,7 @@ private:
 int main(int argc, char** argv) {
 	VerilatedContext* contextp = new VerilatedContext;
 	contextp->commandArgs(argc, argv);
-	Vef9345* top = new Vef9345{contextp};
+	Vef9345_inout_wrapper* top = new Vef9345_inout_wrapper{contextp};
 
 	/*
 	Verilated::traceEverOn(true);
@@ -132,7 +133,7 @@ int main(int argc, char** argv) {
 	top->rw = 1;
 	top->eval();
 
-	std::cout << "   cs_\tas\tds\trw\tdata" << std::endl;
+	std::cout << "   cs_\tas\tds\trw\tdata\ttest" << std::endl;
 
 	while (!contextp->gotFinish() && step != steps.end()) {
 		contextp->timeInc(1);
@@ -144,14 +145,14 @@ int main(int argc, char** argv) {
 			<< (int)top->as << '\t'
 			<< (int)top->ds << '\t'
 			<< (int)top->rw << '\t'
-			<< (int)top->data_bus << std::endl;
+			<< (int)top->data_bus_in << std::endl;
 		top->eval();
 		std::cout << "<- "
 			<< (int)top->cs_ << '\t'
 			<< (int)top->as << '\t'
 			<< (int)top->ds << '\t'
 			<< (int)top->rw << '\t'
-			<< (int)top->data_bus << std::endl;
+			<< (int)top->data_bus_out << std::endl;
 		std::cout << "--" << std::endl;
 	}
 	delete top;

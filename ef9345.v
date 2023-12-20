@@ -27,16 +27,18 @@ always@(negedge as) begin
 end
 
 always@(posedge reg_write) begin
-	case (latched_addr & 7)
-		0: R0 <= data_bus;
-		1: R1 <= data_bus;
-		2: R2 <= data_bus;
-		3: R3 <= data_bus;
-		4: R4 <= data_bus;
-		5: R5 <= data_bus;
-		6: R6 <= data_bus;
-		7: R7 <= data_bus;
-	endcase
+	if (latched_addr[7:4] == 2) begin
+		case (latched_addr & 7)
+			0: R0 <= data_bus;
+			1: R1 <= data_bus;
+			2: R2 <= data_bus;
+			3: R3 <= data_bus;
+			4: R4 <= data_bus;
+			5: R5 <= data_bus;
+			6: R6 <= data_bus;
+			7: R7 <= data_bus;
+		endcase
+	end
 end
 
 reg [7:0] addressed_reg;
@@ -57,7 +59,7 @@ end
 assign data_bus = reg_read ? addressed_reg : 8'bz;
 
 wire reg_write = !latched_cs_ && !rw && (intel_mode ? 1 : ds);
-wire reg_read = !latched_cs_ && (intel_mode ? ~ds : (rw & ds));
+wire reg_read = !latched_cs_ && (latched_addr[7:4] == 2) && (intel_mode ? ~ds : (rw & ds));
 
 reg [7:0] R0;
 reg [7:0] R1;

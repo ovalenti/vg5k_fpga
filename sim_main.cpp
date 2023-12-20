@@ -111,18 +111,18 @@ int main(int argc, char** argv) {
 
 	std::deque<Step*> steps;
 
-	steps.push_back(new SetAddr(0));
+	steps.push_back(new SetAddr(0x20));
 	steps.push_back(new WriteData(41));
-	steps.push_back(new SetAddr(1));
+	steps.push_back(new SetAddr(0x21));
 	steps.push_back(new WriteData(42));
-	steps.push_back(new SetAddr(2));
+	steps.push_back(new SetAddr(0x22));
 	steps.push_back(new WriteData(43));
 
-	steps.push_back(new SetAddr(0));
+	steps.push_back(new SetAddr(0x20));
 	steps.push_back(new ReadData());
-	steps.push_back(new SetAddr(1));
+	steps.push_back(new SetAddr(0x21));
 	steps.push_back(new ReadData());
-	steps.push_back(new SetAddr(2));
+	steps.push_back(new SetAddr(0x22));
 	steps.push_back(new ReadData());
 
 	auto step = steps.begin();
